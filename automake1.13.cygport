@@ -1,6 +1,6 @@
 NAME="automake1.13"
-VERSION=1.13.1
-RELEASE=1
+VERSION=1.13.4
+RELEASE=2
 CATEGORY="Devel"
 SUMMARY="(1.13) a tool for generating GNU-compliant Makefiles"
 DESCRIPTION="This is Automake, a Makefile generator.  It was inspired by the
@@ -13,6 +13,7 @@ REQUIRES="autoconf autoconf2.5 coreutils m4 texinfo xz"
 HOMEPAGE="http://www.gnu.org/software/automake/"
 SRC_URI="mirror://gnu/automake/automake-${VERSION}.tar.xz"
 SRC_DIR="automake-${VERSION}"
+PATCH_URI="mirror://portage/sys-devel/automake/files/automake-1.13-perl-escape-curly-bracket.patch"
 
 DIFF_EXCLUDES="automake.info* stamp-vti version.texi"
 
