@@ -13,7 +13,11 @@ REQUIRES="autoconf autoconf2.5 coreutils m4 texinfo xz"
 HOMEPAGE="http://www.gnu.org/software/automake/"
 SRC_URI="mirror://gnu/automake/automake-${VERSION}.tar.xz"
 SRC_DIR="automake-${VERSION}"
-PATCH_URI="mirror://portage/sys-devel/automake/files/automake-1.13-perl-escape-curly-bracket.patch"
+PATCH_URI="
+	mirror://portage/sys-devel/automake/files/automake-1.13-perl-escape-curly-bracket.patch
+"
+
+ARCH=noarch
 
 DIFF_EXCLUDES="automake.info* stamp-vti version.texi"
 
@@ -41,9 +45,35 @@ src_install() {
 	# remove the unversioned executables
 	rm -f ${D}/usr/bin/automake ${D}/usr/bin/aclocal
 
+	# slot the info pages
+	pushd ${D}/usr/share/info >/dev/null
+	rm -f dir
+
+	# Rewrite all the references to other pages.
+	# before: * aclocal-invocation: (automake)aclocal Invocation.   Generating aclocal.m4.
+	# after:  * aclocal-invocation 1.12: (automake-1.12)aclocal Invocation.   Generating aclocal.m4.
+	local p pages=( *.info ) args=()
+	for p in "${pages[@]/%.info}" ; do
+		args+=(
+			-e "/START-INFO-DIR-ENTRY/,/END-INFO-DIR-ENTRY/s|: (${p})| ${VERSION%.*}&|"
+			-e "s:(${p}):(${p}-${VERSION%.*}):g"
+		)
+	done
+	sed -i "${args[@]}" * || error
+
+	# Rewrite all the file references, and rename them in the process.
+	local f d
+	for f in * ; do
+		d=${f/.info/-${VERSION%.*}.info}
+		mv "${f}" "${d}" || error
+		sed -i -e "s:${f}:${d}:g" * || error
+	done
+
+	popd >/dev/null
+
 	# remove the unversioned info and man pages (when no longer newest version)
-#	rm -f ${D}/usr/share/info/automake.*
-#	rm -f ${D}/usr/share/info/automake-history.*
-#	rm -f ${D}/usr/share/man/man1/automake.1
-#	rm -f ${D}/usr/share/man/man1/aclocal.1
+	rm -f ${D}/usr/share/info/automake.*
+	rm -f ${D}/usr/share/info/automake-history.*
+	rm -f ${D}/usr/share/man/man1/automake.1
+	rm -f ${D}/usr/share/man/man1/aclocal.1
 }
